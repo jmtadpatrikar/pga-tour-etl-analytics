@@ -42,7 +42,7 @@ The report contains three pages:
 
 DAX measures support player counts, performance rates, comparisons, and leaderboard rankings. The report uses a consistent green-and-gold theme and page navigation.
 
-![PGA Tour dashboard overview showing player counts, top-10 finish rate, strokes gained, and a player leaderboard](pga_overview.png)
+![PGA Tour dashboard overview showing player counts, top-10 finish rate, strokes gained, and a player leaderboard](assets/pga_overview.png)
 
 ### Opening the Report
 
