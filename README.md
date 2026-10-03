@@ -1,75 +1,107 @@
-# PGA Tour Player Statistics
+# PGA Tour Player Performance Explorer
 
-A Python notebook that extracts PGA Tour player statistics from the Sportradar API, transforms the data with pandas, and loads it into a MySQL database.
+A golf analytics project combining **Python, the Sportradar API, MySQL, and Power BI** to explore PGA Tour player performance.
 
-This notebook is the first stage of a broader PGA Tour data project. Dashboards and player-performance analysis will be added to this repository, building on the data prepared here.
+The project takes season-level statistics from a nested API response, prepares structured datasets, stores them in MySQL, and presents player comparisons through a three-page Power BI report.
 
 ## Why I Built This
 
-I built this project to practise taking data through a complete extract, transform, and load (ETL) workflow. Using PGA Tour statistics gave me a practical dataset for working with an external API, turning nested JSON into a structured table, and preparing data for further analysis.
+I built this project to practise the complete workflow from collecting data to presenting it in an interactive report. Golf provided a practical setting for exploring how player performance, finishing results, and tournament participation relate to one another.
 
-The aim was to connect these steps in one project: retrieving data, selecting useful statistics, calculating performance measures, and storing the results in a relational database.
+The project brings together API integration, data preparation, database loading, DAX measures, and dashboard design.
 
-## What the Project Covers
+## Questions the Report Explores
 
-The notebook works with one season of PGA Tour player statistics and is currently configured for **2026**.
-
-### 1. Extract
-
-- Request season-level player statistics from the Sportradar Golf API using an API key.
-- Parse the JSON response and inspect its structure.
-- Access the player records and their nested statistics.
-
-### 2. Transform
-
-- Extract 12 fields into a pandas DataFrame, including player names, country, world ranking, events played, wins, runner-up finishes, top-10 and top-25 finishes, cuts made, FedEx ranking, and total strokes gained.
-- Inspect the table's structure, data types, and non-null counts.
-- Standardise country names to title case.
-- Calculate two additional performance measures, rounded to two decimal places:
-
-| Metric | Calculation |
-| --- | --- |
-| Win percentage | Wins / events played x 100 |
-| Top-10 percentage | Top-10 finishes / events played x 100 |
-
-Players with zero or negative events played receive missing percentage values, avoiding division by zero.
-
-### 3. Load
-
-- Connect to MySQL using SQLAlchemy and PyMySQL.
-- Write the 14-column DataFrame to a table named `players_statistics` without the pandas index.
-- Replace the existing table when the load step is run again.
+- How does strokes gained relate to top-10 finish rate?
+- Which players lead across different performance measures?
+- How does an individual player compare with the wider player group?
+- How do performance and finishing rates vary with the number of events played?
 
 ## Skills Demonstrated
 
-| Skill | How it is used |
+| Area | Application |
 | --- | --- |
-| Python programming | Use variables, loops, lists, tuples, and dictionaries to process player records. |
-| API integration | Send an authenticated HTTP request with headers and query parameters using `requests`. |
-| JSON processing | Navigate a nested API response and extract selected fields. |
-| Data preparation with pandas | Build and inspect a DataFrame, format text, and calculate percentage metrics. |
-| ETL workflow development | Connect extraction, transformation, and database loading in a single notebook. |
-| Database integration | Load a pandas DataFrame into MySQL through SQLAlchemy and PyMySQL. |
-| Configuration management | Read API and database credentials from environment variables using `python-dotenv`. |
-| Jupyter notebooks | Organise the workflow into stages with executable code and inspectable outputs. |
+| API integration | Request and parse authenticated JSON responses. |
+| Python and pandas | Transform nested records into structured datasets. |
+| Data preparation | Standardise text, inspect fields, and calculate performance rates. |
+| MySQL | Store prepared data in relational tables. |
+| Power BI and DAX | Build interactive comparisons, performance measures, and leaderboards. |
+| Data communication | Organise the report around clear analytical questions. |
 
-## Tools and Libraries
+## Power BI Report
 
-- Python and Jupyter
-- `requests` for API requests
-- `pandas` for data transformation
-- `python-dotenv` for environment configuration
-- MySQL for data storage
-- `SQLAlchemy` and `PyMySQL` for the database connection and loading
+**Report file:** [Download PGA Stats Explorer.pbix](PGA%20Stats%20Explorer.pbix?raw=true)
 
-The notebook's first cell installs its Python dependencies. It also installs and imports `mysql-connector-python`, although the load step uses PyMySQL.
+The report contains three pages:
+
+| Page | What it shows |
+| --- | --- |
+| **Overview** | Player counts, player starts, top-10 finish rate, a strokes-gained scatter chart, and a selectable leaderboard. Country and minimum-event filters help narrow the comparison. |
+| **Player Detail** | Individual player statistics, comparison with a tour-average benchmark, and season finishing results. |
+| **Participation & Success** | Strokes gained and top-10 rates by participation level, with charts and a summary table comparing player groups. |
+
+DAX measures support player counts, performance rates, comparisons, and leaderboard rankings. The report uses a consistent green-and-gold theme and page navigation.
+
+![PGA Tour dashboard overview showing player counts, top-10 finish rate, strokes gained, and a player leaderboard](pga_overview.png)
+
+### Opening the Report
+
+Download `PGA Stats Explorer.pbix` and open it in Power BI Desktop on Windows. The file allows you to explore the visuals and inspect the included model and DAX measures.
+
+## Data Pipeline
+
+The notebook works with one season of PGA Tour player statistics and is configured for **2026**.
+
+### 1. Extract
+
+- Request season-level player statistics from the Sportradar Golf API.
+- Authenticate using credentials loaded from environment variables.
+- Parse the JSON response and access each player’s nested statistics.
+
+### 2. Transform
+
+The notebook prepares two pandas DataFrames:
+
+| Dataset | Contents |
+| --- | --- |
+| **Main player data** | Player names, country, world ranking, events played, wins, runner-up finishes, top-10 and top-25 finishes, cuts made, FedEx ranking, strokes gained, and calculated win and top-10 percentages. |
+| **Detailed statistics** | Player names and identifiers, driving accuracy, greens in regulation, sand saves, scrambling, scoring average, a derived putting measure, and strokes gained. |
+
+Preparation includes inspecting data types and non-null counts, standardising country names, and calculating:
+
+| Metric | Calculation |
+| --- | --- |
+| Win percentage | Wins ÷ events played × 100 |
+| Top-10 percentage | Top-10 finishes ÷ events played × 100 |
+
+These percentages are rounded to two decimal places. Players with zero or negative events played receive missing percentage values.
+
+The notebook also derives `putts_per_round` as the API’s `putt_avg` value multiplied by 18.
+
+### 3. Load
+
+SQLAlchemy and PyMySQL load the prepared datasets into MySQL:
+
+- `players_main` — main player data and calculated percentages.
+- `players_statistics` — detailed performance statistics.
+
+Each load replaces the corresponding table and excludes the pandas index.
 
 ## Scope and Limitations
 
-The current notebook focuses on collecting, preparing, and storing data. Dashboards and further analysis of player performance will be added to this repository as the project develops; these are planned additions and are not included yet.
+- Results represent the API data available when extracted; the report is not a live feed.
+- The notebook does not retain historical snapshots when replacing database tables.
+- Rates based on few events can be unstable. The minimum-event filter helps compare players with more substantial participation.
+- Total player starts count player appearances, not unique tournaments.
+- Wins, top-10 finishes, and top-25 finishes overlap and should not be added together as separate outcome categories.
+- Relationships between participation and performance describe associations, not evidence of causation.
+- API response validation, retries, and handling for missing fields remain areas for improvement.
 
-Each load replaces the existing `players_statistics` table, so the notebook does not retain previous season snapshots.
+## Future Improvements
 
-The notebook assumes that the API request succeeds and each player contains the expected fields. Explicit response validation, retries, and handling for missing fields would make the workflow more robust. Its database connection is built as a URL string, so credentials containing URL-reserved characters need appropriate encoding.
+- Record extraction dates and retain historical snapshots.
+- Add API response validation and automated data-quality checks.
+- Document source definitions and units for each performance metric.
+- Automate the refresh process between the prepared data and Power BI.
 
-The output provides a structured starting point for further SQL queries or player-performance analysis. Results depend on the season and the data returned by the API when the notebook is run.
+**Data source:** Sportradar Golf API.
